@@ -1,0 +1,8 @@
+{ "dependencies": 
+  [
+    {
+      "name" : "puppetlabs-apache",
+      "version_requirement" : "<=1.3.0"
+    }
+  ]
+}
