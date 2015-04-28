@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'puppet'
 require 'puppet/module_tool'
+require 'puppet/face'
 require 'json'
 require 'optparse'
 require 'fileutils'
@@ -11,45 +12,51 @@ class PPBoot
   def initialize boot_dir_path, input_file = nil
     @boot_dir_path = boot_dir_path
     @inputfile = input_file
-    @vardir = Dir.mktmpdir
-    Puppet.settings[:vardir]= @vardir
-    case Gem.loaded_specs['puppet'].version
-    when proc{ |n| n < Gem::Version.new('3.5.0') }
-      Puppet.settings[:modulepath]= boot_dir_path
-      @fake_env = Puppet::Node::Environment.new('temp')
-    else
-      @fake_env = Puppet::Node::Environment.create('temp',[boot_dir_path])
+    unless Puppet.settings[:vardir]
+      Puppet::initialize_settings
     end
-      @boot_dir = Puppet::ModuleTool::InstallDirectory.new(Pathname.new(boot_dir_path))
+         @fake_env = Puppet::Node::Environment.new('temp')
+    # else
+      # @fake_env = Puppet::Node::Environment.create('temp',[boot_dir_path])
   end
 
   def report
     rep=Array.new
-    case Gem.loaded_specs['puppet'].version
-    when proc{ |n| n < Gem::Version.new('3.6.0') }
-      @fake_env.modules_by_path[@boot_dir_path].each do |mod|
-        p="#{mod.forge_name}-#{mod.version}"
-        rep << p
-      end
-    else
-      Puppet::ModuleTool::InstalledModules.new(@fake_env).by_name.each do |key,imodule|
-        p="#{imodule.forge_name}-#{imodule.metadata['version']}"
-        rep << p
-      end
+    
+    r=Puppet::Face[:module, :current].list({:modulepath => @boot_dir_path})
+    # case Gem.loaded_specs['puppet'].version
+    # when proc{ |n| n < Gem::Version.new('3.6.0') }
+    #   @fake_env.modules_by_path[@boot_dir_path].each do |mod|
+    #     p="#{mod.forge_name}-#{mod.version}"
+    #     rep << p
+    #   end
+    # else
+    #   Puppet::ModuleTool::InstalledModules.new(@fake_env).by_name.each do |key,imodule|
+    #     p="#{imodule.forge_name}-#{imodule.metadata['version']}"
+    #     rep << p
+    #   end
+    # end
+    puts r.inspect
+
+    r[:modules_by_path][@boot_dir_path].each do |mod|
+      p="#{mod.forge_name}-#{mod.version}"
+      rep << p
     end
 
     rep
   end
 
   def install fmodule, version = '>=0.0.0'
-    case Gem.loaded_specs['puppet'].version
-    when proc{ |n| n < Gem::Version.new('3.6.0') }
-      inst = Puppet::ModuleTool::Applications::Installer.new(fmodule, Puppet::Forge.new("PMT", SemVer.new('0.0.0')), @boot_dir, {:environment_instance => @fake_env, :target_dir => @boot_dir_path, :version => version})
-    else
-      inst = Puppet::ModuleTool::Applications::Installer.new(fmodule, @boot_dir, {:environment_instance => @fake_env, :version => version})
-    end
+
+    # case Gem.loaded_specs['puppet'].version
+    # when proc{ |n| n < Gem::Version.new('3.6.0') }
+    #   inst = Puppet::ModuleTool::Applications::Installer.new(fmodule, Puppet::Forge.new("PMT", SemVer.new('0.0.0')), @boot_dir, {:environment_instance => @fake_env, :target_dir => @boot_dir_path, :version => version})
+    # else
+    #   inst = Puppet::ModuleTool::Applications::Installer.new(fmodule, @boot_dir, {:environment_instance => @fake_env, :version => version})
+    # end
     begin
-      r = inst.run
+      opts = {:target_dir => @boot_dir_path, :version => version }
+      r=Puppet::Face[:module, :current].install(fmodule, opts)
     rescue RuntimeError => e
       puts e.message
       return :failure
@@ -73,9 +80,11 @@ class PPBoot
       end
     end
 
-    report.each do |item|
+    r = report
+    r.each do |item|
       puts item
     end
+    r
   end
 
   def get_dependencies
