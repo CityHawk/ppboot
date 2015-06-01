@@ -15,15 +15,39 @@ class PPBoot
     unless Puppet.settings[:vardir]
       Puppet::initialize_settings
     end
-         @fake_env = Puppet::Node::Environment.new('temp')
-    # else
-      # @fake_env = Puppet::Node::Environment.create('temp',[boot_dir_path])
+    Puppet.settings[:modulepath] = @boot_dir_path
   end
+
+  def install fmodule, version = '>=0.0.0'
+
+    # case Gem.loaded_specs['puppet'].version
+    # when proc{ |n| n < Gem::Version.new('3.6.0') }
+    #   inst = Puppet::ModuleTool::Applications::Installer.new(fmodule, Puppet::Forge.new("PMT", SemVer.new('0.0.0')), @boot_dir, {:environment_instance => @fake_env, :target_dir => @boot_dir_path, :version => version})
+    # else
+    #   inst = Puppet::ModuleTool::Applications::Installer.new(fmodule, @boot_dir, {:environment_instance => @fake_env, :version => version})
+    # end
+      opts = {:target_dir => @boot_dir_path, :version => version }
+    begin
+      r=Puppet::Face[:module, :current].install(fmodule, opts)
+    rescue RuntimeError => e
+      puts e.message
+      return :failure
+    end
+    r[:result]
+  end
+
 
   def report
     rep=Array.new
-    
-    r=Puppet::Face[:module, :current].list({:modulepath => @boot_dir_path})
+
+    # opts = {:modulepath => @boot_dir_path, :environment => @fake_env}
+    opts = {:modulepath => @boot_dir_path}
+    if Puppet::Node::Environment.respond_to?('create')
+      @fake_env = Puppet::Node::Environment.create('fake', [@boot_dir_path])
+    else
+      @fake_env = Puppet::Node::Environment.new('fake')
+    end
+    opts = {:environment => @fake_env}
     # case Gem.loaded_specs['puppet'].version
     # when proc{ |n| n < Gem::Version.new('3.6.0') }
     #   @fake_env.modules_by_path[@boot_dir_path].each do |mod|
@@ -36,32 +60,14 @@ class PPBoot
     #     rep << p
     #   end
     # end
-    puts r.inspect
 
-    r[:modules_by_path][@boot_dir_path].each do |mod|
+    v = @fake_env.modules_by_path
+    v[@boot_dir_path].each do |mod|
       p="#{mod.forge_name}-#{mod.version}"
       rep << p
     end
 
     rep
-  end
-
-  def install fmodule, version = '>=0.0.0'
-
-    # case Gem.loaded_specs['puppet'].version
-    # when proc{ |n| n < Gem::Version.new('3.6.0') }
-    #   inst = Puppet::ModuleTool::Applications::Installer.new(fmodule, Puppet::Forge.new("PMT", SemVer.new('0.0.0')), @boot_dir, {:environment_instance => @fake_env, :target_dir => @boot_dir_path, :version => version})
-    # else
-    #   inst = Puppet::ModuleTool::Applications::Installer.new(fmodule, @boot_dir, {:environment_instance => @fake_env, :version => version})
-    # end
-    begin
-      opts = {:target_dir => @boot_dir_path, :version => version }
-      r=Puppet::Face[:module, :current].install(fmodule, opts)
-    rescue RuntimeError => e
-      puts e.message
-      return :failure
-    end
-    r[:result]
   end
 
   def run!(verbose = false)

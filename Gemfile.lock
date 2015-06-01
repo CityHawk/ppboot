@@ -1,42 +1,32 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    CFPropertyList (2.2.8)
-    appraisal (1.0.2)
+    activesupport (4.1.10)
+      i18n (~> 0.6, >= 0.6.9)
+      json (~> 1.7, >= 1.7.7)
+      minitest (~> 5.1)
+      thread_safe (~> 0.1)
+      tzinfo (~> 1.1)
+    appraisal (2.0.1)
+      activesupport (>= 3.2.21)
       bundler
       rake
       thor (>= 0.14.0)
-    diff-lcs (1.2.5)
-    facter (2.4.1)
-      CFPropertyList (~> 2.2.6)
-    hiera (1.3.4)
-      json_pure
-    json_pure (1.8.2)
-    puppet (3.7.3)
-      facter (> 1.6, < 3)
-      hiera (~> 1.0)
-      json_pure
+    i18n (0.7.0)
+    json (1.8.2)
+    minitest (5.7.0)
     rake (10.4.2)
-    rspec (3.2.0)
-      rspec-core (~> 3.2.0)
-      rspec-expectations (~> 3.2.0)
-      rspec-mocks (~> 3.2.0)
-    rspec-core (3.2.1)
-      rspec-support (~> 3.2.0)
-    rspec-expectations (3.2.0)
-      diff-lcs (>= 1.2.0, < 2.0)
-      rspec-support (~> 3.2.0)
-    rspec-mocks (3.2.1)
-      diff-lcs (>= 1.2.0, < 2.0)
-      rspec-support (~> 3.2.0)
-    rspec-support (3.2.2)
     thor (0.19.1)
+    thread_safe (0.3.5)
+    tzinfo (1.2.2)
+      thread_safe (~> 0.1)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  appraisal
-  puppet
-  rake
-  rspec (> 3.0.0)
+  appraisal (~> 2.0.0)
+  i18n
+
+BUNDLED WITH
+   1.10.2

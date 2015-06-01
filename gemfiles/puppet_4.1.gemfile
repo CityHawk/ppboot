@@ -4,5 +4,5 @@ source "https://rubygems.org"
 
 gem "appraisal", "~>2.0.0"
 gem "i18n"
-gem "puppet", "~>3.2.0"
+gem "puppet", "~>4.1.0"
 gem "rspec"
