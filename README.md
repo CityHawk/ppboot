@@ -7,13 +7,13 @@ Honestly you have to sometimes... e.g if you are bootstrapping your first puppet
 
 ## How to use
 
-The script was designed to be a single file entity. You can drop it within your module or copy it to the box
+The script was designed to be a single file entity `ppboot.rb`. You can drop it within your module or copy it to the box
 
     mkdir /tmp/mybootdir
     ruby ppboot --modulepath /tmp/mybootdir --input /path/to/my/module/metadata.json
     puppet apply --modulepath /path/to/my/:/tmp/mybootdir
 
-If you do not specify modulepath the default will be used (/etc/puppet/modules if root, $HOME/.puppet/modules if unprivileged user)
+If you do not specify modulepath the default will be used (`/etc/puppet/modules` if root, `$HOME/.puppet/modules` if unprivileged user)
 
 ## Requirements
 
